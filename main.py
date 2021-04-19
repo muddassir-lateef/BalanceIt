@@ -6,8 +6,22 @@ import random
 from itertools import combinations
 from replit import db
 from keep_alive import keep_alive
+playersdata={}
+def store(str1):
+  tplayers = str1.split(',')
+  tplayers[0]=tplayers[0].replace(" ","")
+  playersdata.update({tplayers[0]:int(tplayers[1])})
+ # playersdata[str(tplayers[0])] =int[tplayers[1]]
+def leaderboard():
+  tstr=""
+  sdata=sorted(playersdata.items(), key=lambda x: x[1], reverse=True)
+  n1=1
+  for i in sdata:
+    tstr=tstr+"\n"+str(n1)+") "+i[0]+"    "+str(i[1])
+    n1=n1+1
+  return tstr
 def power(player):
-   return int(player)
+  return int(player)
 def tpower(team):
     tp=0
     for i in team:
@@ -19,9 +33,7 @@ def powerdiff(team1,team2):
 
 def balance(players):
     perteam=int(len(players)/2)
-
     comb = combinations(players, perteam)
-
     min=1000
     team1=[]
     team2=[]
@@ -50,6 +62,8 @@ def balance(players):
             balteam.append(t2[:])
             balteams.append(balteam[:])
     return balteams
+
+
 client = discord.Client()
 
 
@@ -68,32 +82,51 @@ async def on_message(message):
   if message.author == client.user:
     return
   if message.content.startswith('!bhelp'):
-    str2='Enter the players and their ranks in following format: \n'
-    str2=str2+"!balance <player1name>,<player1rank>;<player2name>,<player2rank>; etc..\n"
-    str2=str2+"You must enter even number of players(It will make 2 teams) and rank should be a number.\n"
+    str2='Bot Commands: \n'
+    str2=str2+"!power <playerdiscordtag>,<playerpower> to associate power for that player\n"
+    str2=str2+"!ranking shows the current ranking and leaderboard of registered players.\n"
+    str2=str2+"!balance <player1discordtag> <player2discordtag> <player3discordtag> <player4discordtag>\n"
+    str2=str2+"Note that for !balance the player must be registered and even number of players must be entered.If there are more than one possible balanced teams then running the !balance once more will randomly give another balanced team.\n"
+
 
     await message.channel.send(str2)
+  if message.content.startswith("!power"):
+    str1=message.content.split("!power ",1)[1]
+    store(str1)
+    await message.channel.send("Power level stored successfully!")
+  if message.content.startswith("!ranking"):
+    await message.channel.send(leaderboard())
   if message.content.startswith("!balance"):
-    str1=message.content.split("!balance ",1)[1]
-    x = []
-    players = []
-    for i in str1.split(';'):
-      x.clear()
-      for j in i.split(','):
-        x.append(j)
-      players.append(x[:])
-    balteams = balance(players)
-    selectedteam = random.choice(balteams)
-    reply="Team 1:\n"
-    for i in selectedteam[0]:
-        reply=reply+" "+i[0]
-    reply=reply+'\n'+"Total Power: "+str(tpower(selectedteam[0]))
-    reply=reply+"\n----------------------------------\nTeam 2:\n"
-    for i in selectedteam[1]:
-        reply=reply+" "+i[1]
-    reply=reply+'\n'+"Total Power: "+str(tpower(selectedteam[1]))
+  
 
-    await message.channel.send(reply)
+      str1=message.content.split("!balance ",1)[1]
+     
+      str1=str1.replace("<", "")
+      str1=str1.replace(">", "")      
+      players = []
+
+
+
+      for i in str1.split(" "):
+        temp=i
+        stemp="<"+temp+">"
+
+        list=[]
+        list.append(stemp)
+        list.append(playersdata[stemp])
+        players.append(list[:])
+      balteams = balance(players)
+      selectedteam = random.choice(balteams)
+      reply="Team 1:\n"
+      for i in selectedteam[0]:
+          reply=reply+" "+i[0]
+      reply=reply+'\n'+"Total Power: "+str(tpower(selectedteam[0]))
+      reply=reply+"\n----------------------------------\nTeam 2:\n"
+      for i in selectedteam[1]:
+          reply=reply+" "+i[0]
+      reply=reply+'\n'+"Total Power: "+str(tpower(selectedteam[1]))
+
+      await message.channel.send(reply)
   msg = message.content
   
 
